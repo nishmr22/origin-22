@@ -1,0 +1,9 @@
+name: Check linked issues and update status
+description: 'Checks all PRs with linked issues and updates the status of those issues to "In Review"'
+runs:
+  using: "composite"
+  steps:
+    - name: Set Linked Issues to In Review
+      id: update_linked_issue_status
+      shell: bash
+      run: bash ${{ github.action_path }}/update_issue.sh
