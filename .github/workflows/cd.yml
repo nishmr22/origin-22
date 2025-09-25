@@ -22,11 +22,20 @@ jobs:
       with:
         sparse-checkout: .github
         
+   # Generate GitHub App token
+    - name: Generate GitHub App Token
+      id: generate_token
+      uses: actions/create-github-app-token@v1
+      with:
+        app-id: ${{ secrets.APP_ID }}
+        private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        
     - name: Check all PRs with linked issues and update status
       uses: ./.github/actions/pr_linked/update_linked_issue_status
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
         PR_NUMBER: ${{ inputs.pr_number }}
+
 
 
 
