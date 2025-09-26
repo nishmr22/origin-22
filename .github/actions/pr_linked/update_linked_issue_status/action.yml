@@ -8,11 +8,11 @@ runs:
       shell: bash
       run: |
         # Export GH_TOKEN for gh CLI to use
-        export GH_TOKEN="${token-abc}"
+        export GH_TOKEN="${token_abc}"
         
         # Verify token is available
         if [ -z "$GH_TOKEN" ]; then
-          echo "Error: token-abc not set in environment"
+          echo "Error: token_abc not set in environment"
           exit 1
         fi
         

@@ -30,13 +30,13 @@ jobs:
     # Debug: Verify token
     - name: Debug Token
       env:
-        token-abc: ${{ steps.generate_token.outputs.token }}
+        token_abc: ${{ steps.generate_token.outputs.token }}
       run: |
-        echo "Token length: ${#token-abc}"
+        echo "Token length: ${#token_abc}"
         echo "Testing API access..."
         gh api user --jq '.login' || echo "API call failed"
         
     - name: Check all PRs with linked issues and update status
       env:
-        token-abc: ${{ steps.generate_token.outputs.token }}
+        token_abc: ${{ steps.generate_token.outputs.token }}
       uses: ./.github/actions/pr_linked/update_linked_issue_status

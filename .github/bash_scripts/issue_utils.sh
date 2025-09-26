@@ -58,7 +58,7 @@ update_issue_status() {
   
   # Debug: Check token and environment
   echo "Verifying GitHub API access..."
-  echo "token-abc set: ${token-abc:+YES (${#token-abc} chars)}"
+  echo "token_abc set: ${token_abc:+YES (${#token_abc} chars)}"
   echo "GH_TOKEN set: ${GH_TOKEN:+YES}"
   
   # Test API access
