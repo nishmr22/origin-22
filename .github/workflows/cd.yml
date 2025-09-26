@@ -37,8 +37,10 @@ jobs:
           GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
           GH_TOKEN: ${{ steps.generate_token.outputs.token }}
         run: |
-          echo "Generated token: ${{ steps.generate_token.outputs.token | cut -c 1-10 }}..."
-          echo "Token length: ${#GITHUB_TOKEN}"
+          TOKEN="${{ steps.generate_token.outputs.token }}"
+          echo "Generated token: $(echo "$TOKEN" | cut -c 1-10)..."
+          echo "Token length: ${#TOKEN}"
+          export GH_TOKEN="$TOKEN"
           echo "Testing API access..."
           gh api user --jq '.login' || echo "API call failed"
 
