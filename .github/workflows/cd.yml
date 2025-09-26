@@ -11,11 +11,6 @@ on:
 jobs:
   update-linked-issues:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pull-requests: read
-      issues: write
-      repository-projects: write
       
     steps:
     - uses: actions/checkout@v4
@@ -29,6 +24,8 @@ jobs:
       with:
         app-id: ${{ secrets.APP_ID }}
         private-key: ${{ secrets.APP_PRIVATE_KEY }}
+        owner: nishmr22        
+        repositories: origin-22
         
     - name: Check all PRs with linked issues and update status
       uses: ./.github/actions/pr_linked/update_linked_issue_status
