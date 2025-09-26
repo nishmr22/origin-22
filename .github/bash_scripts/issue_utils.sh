@@ -35,7 +35,7 @@ print_issue_status() {
                     field { ... on ProjectV2FieldCommon { name } }
                     text
                   }}}}}}}}
-  ' -F id="$issue_node_id" \
+  ' -F id="I_kwDOP3Cdo87N9BCb" \
   | jq -r '
       .data.node.projectItems.nodes[] |
       select(.project != null) |
@@ -57,7 +57,7 @@ update_issue_status() {
      node(id: $id) {
        ... on Issue {
          projectItems(first: 20) {
-           nodes { id project { id title } }}}}}' -F id="$issue_node_id")
+           nodes { id project { id title } }}}}}' -F id="I_kwDOP3Cdo87N9BCb")
   echo "Project items: $project_items"
   local item_count
   item_count=$(echo "$project_items" | jq '.data.node.projectItems.nodes | length')
