@@ -11,6 +11,14 @@ on:
 jobs:
   update-linked-issues:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      pull-requests: write
+      contents: read
+      metadata: read
+      projects: write
+      repository-projects: write
+      organization_projects: write
       
     steps:
     - uses: actions/checkout@v4
