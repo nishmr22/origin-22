@@ -40,7 +40,7 @@ print_issue_status() {
                  }
                  ... on ProjectV2ItemFieldTextValue {
                    field {
-                     ... on ProjectV2TextField {
+                     ... on ProjectV2FieldCommon {
                        name
                      }
                    }
@@ -55,7 +55,7 @@ print_issue_status() {
    }' -F id="$issue_node_id" \
   | jq -r '
     .data.node.projectItems.nodes[]? |
-    {project: .project.title, status: (.fieldValues.nodes[]? | select(.field | .["... on ProjectV2SingleSelectField"].name=="Status") | (.name // .text // "No Status"))} |
+    {project: .project.title, status: (.fieldValues.nodes[]? | select(.field | .["... on ProjectV2SingleSelectField"].name=="Status" or .["... on ProjectV2FieldCommon"].name=="Status") | (.name // .text // "No Status"))} |
     "  - \(.project): \(.status)"' || echo "No project items found"
   echo "Exiting print_issue_status for issue node ID: $issue_node_id"
 }
