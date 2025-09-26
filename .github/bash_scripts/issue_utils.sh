@@ -35,7 +35,7 @@ print_issue_status() {
                     field { ... on ProjectV2FieldCommon { name } }
                     text
                   }}}}}}}}
-  ' -F id="I_kwDOP3Cdo87N9BCb" \
+  ' --field id="$issue_node_id" \
   | jq -r '
       .data.node.projectItems.nodes[] |
       select(.project != null) |
@@ -48,6 +48,9 @@ print_issue_status() {
 # function: update_issue_status, params: issue_node_id, issue_number, target_status
 # Improved update_issue_status function
 update_issue_status() {
+  echo "token scope"
+  echo $GITHUB_TOKEN | cut -d'.' -f2 | base64 -d 2>/dev/null | jq '.'
+
   local issue_node_id="$1"
   local issue_number="$2"
   local target_status="$3"
@@ -71,7 +74,7 @@ update_issue_status() {
           }
         }
       }
-    }' -F id="$issue_node_id")
+    }' --field id="$issue_node_id")
   
   local item_count
   item_count=$(echo "$project_items" | jq '.data.node.projectItems.nodes | length')
