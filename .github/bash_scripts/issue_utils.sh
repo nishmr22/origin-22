@@ -12,7 +12,8 @@ get_issue_node_id() {
      }
    }' \
    -F owner="$OWNER" -F repo="$REPO" -F number="$issue_number")
-  echo "API response: $response"
+  # Debug: Print to stderr to avoid polluting stdout
+  echo "API response: $response" >&2
   echo "$response" | jq -r '.data.repository.issue.id'
 }
 
@@ -58,31 +59,7 @@ update_issue_status() {
   echo "Issue Node ID: $issue_node_id"
   echo "=========================================="
   
-  # Debug: Check token and environment
-  echo "Verifying GitHub API access..."
-  echo "GITHUB_TOKEN set: ${GITHUB_TOKEN:+YES (${#GITHUB_TOKEN} chars)}"
-  echo "GH_TOKEN set: ${GH_TOKEN:+YES}"
-  
-  # Test API access
-  local auth_test
-  auth_test=$(gh api user 2>&1)
-  if [ $? -ne 0 ]; then
-    echo "Error: GitHub token authentication failed"
-    echo "Auth test output: $auth_test"
-    echo ""
-    echo "Troubleshooting:"
-    echo "1. Ensure GITHUB_TOKEN is set in workflow env"
-    echo "2. Check GitHub App has required permissions:"
-    echo "   - Contents: read"
-    echo "   - Issues: read"
-    echo "   - Projects: write (organization_projects or repository_projects)"
-    echo "3. Verify token is passed to action correctly"
-    return 1
-  fi
-  echo "✓ Token is valid (user: $(echo "$auth_test" | jq -r '.login'))"
-  
-  # Get project items for the issue
-  echo ""
+  # Get project items for the issue 
   echo "Fetching project items for issue..."
   local project_items
   project_items=$(gh api graphql --field id="$issue_node_id" -f query='

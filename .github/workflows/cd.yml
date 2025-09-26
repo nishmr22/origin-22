@@ -41,8 +41,8 @@ jobs:
           echo "Generated token: $(echo "$TOKEN" | cut -c 1-10)..."
           echo "Token length: ${#TOKEN}"
           export GH_TOKEN="$TOKEN"
-          echo "Testing API access..."
-          gh api user --jq '.login' || echo "API call failed"
+          echo "Test repo access:"
+          gh api repos/nishmr22/origin-22 --jq '.full_name'
 
       # Run custom action
       - name: Check all PRs with linked issues and update status
