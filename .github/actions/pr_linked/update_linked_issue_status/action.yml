@@ -6,4 +6,15 @@ runs:
     - name: Set Linked Issues to In Review
       id: update_linked_issue_status
       shell: bash
-      run: bash ${{ github.action_path }}/update_issue.sh
+      run: |
+        # Export GH_TOKEN for gh CLI to use
+        export GH_TOKEN="${GITHUB_TOKEN}"
+        
+        # Verify token is available
+        if [ -z "$GH_TOKEN" ]; then
+          echo "Error: GITHUB_TOKEN not set in environment"
+          exit 1
+        fi
+        
+        echo "Token exported, running script..."
+        bash ${{ github.action_path }}/update_issue.sh

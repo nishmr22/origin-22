@@ -11,18 +11,13 @@ on:
 jobs:
   update-linked-issues:
     runs-on: ubuntu-latest
-    permissions:
-      issues: write
-      pull-requests: write
-      contents: read
-      repository-projects: write
       
     steps:
     - uses: actions/checkout@v4
       with:
         sparse-checkout: .github
         
-   # Generate GitHub App token
+    # Generate GitHub App token
     - name: Generate GitHub App Token
       id: generate_token
       uses: actions/create-github-app-token@v1
@@ -31,15 +26,17 @@ jobs:
         private-key: ${{ secrets.APP_PRIVATE_KEY }}
         owner: nishmr22        
         repositories: origin-22
-        
-    - name: Check all PRs with linked issues and update status
-      uses: ./.github/actions/pr_linked/update_linked_issue_status
+    
+    # Debug: Verify token
+    - name: Debug Token
       env:
         GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
-        PR_NUMBER: ${{ inputs.pr_number }}
-
-
-
-
-
-
+      run: |
+        echo "Token length: ${#GITHUB_TOKEN}"
+        echo "Testing API access..."
+        gh api user --jq '.login' || echo "API call failed"
+        
+    - name: Check all PRs with linked issues and update status
+      env:
+        GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+      uses: ./.github/actions/pr_linked/update_linked_issue_status
