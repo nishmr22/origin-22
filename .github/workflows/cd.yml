@@ -11,32 +11,40 @@ on:
 jobs:
   update-linked-issues:
     runs-on: ubuntu-latest
-      
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+      repository-projects: write
     steps:
-    - uses: actions/checkout@v4
-      with:
-        sparse-checkout: .github
-        
-    # Generate GitHub App token
-    - name: Generate GitHub App Token
-      id: generate_token
-      uses: actions/create-github-app-token@v1
-      with:
-        app-id: ${{ secrets.APP_ID }}
-        private-key: ${{ secrets.APP_PRIVATE_KEY }}
-        owner: nishmr22        
-        repositories: origin-22
-    
-    # Debug: Verify token
-    - name: Debug Token
-      env:
-        token_abc: ${{ steps.generate_token.outputs.token }}
-      run: |
-        echo "Token length: ${#token_abc}"
-        echo "Testing API access..."
-        gh api user --jq '.login' || echo "API call failed"
-        
-    - name: Check all PRs with linked issues and update status
-      env:
-        token_abc: ${{ steps.generate_token.outputs.token }}
-      uses: ./.github/actions/pr_linked/update_linked_issue_status
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github
+
+      # Generate GitHub App token
+      - name: Generate GitHub App Token
+        id: generate_token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.APP_ID }}
+          private-key: ${{ secrets.APP_PRIVATE_KEY }}
+          owner: nishmr22
+          repositories: origin-22
+
+      # Debug token
+      - name: Debug Token
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}
+        run: |
+          echo "Generated token: ${{ steps.generate_token.outputs.token | cut -c 1-10 }}..."
+          echo "Token length: ${#GITHUB_TOKEN}"
+          echo "Testing API access..."
+          gh api user --jq '.login' || echo "API call failed"
+
+      # Run custom action
+      - name: Check all PRs with linked issues and update status
+        uses: ./.github/actions/pr_linked/update_linked_issue_status
+        env:
+          GITHUB_TOKEN: ${{ steps.generate_token.outputs.token }}
+          GH_TOKEN: ${{ steps.generate_token.outputs.token }}

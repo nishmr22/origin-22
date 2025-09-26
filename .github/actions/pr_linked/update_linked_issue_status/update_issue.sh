@@ -1,5 +1,8 @@
 source ".github/bash_scripts/issue_utils.sh"
-
+if [ -z "$GH_TOKEN" ]; then
+  export GH_TOKEN="$GITHUB_TOKEN"
+  echo "Using GITHUB_TOKEN for GH_TOKEN"
+fi
 echo "Getting all open PRs from repository: $GITHUB_REPOSITORY"
 readarray -t PRS < <(gh api repos/$GITHUB_REPOSITORY/pulls --paginate --jq '.[] | select(.state=="open") | .number')
 

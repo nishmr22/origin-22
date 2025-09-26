@@ -4,14 +4,16 @@ REPO=$(echo "$GITHUB_REPOSITORY" | cut -d '/' -f2)
 # function: get_issue_node_id, param: issue_number
 get_issue_node_id() {
   local issue_number="$1"
-  gh api graphql -f query='
+  local response
+  response=$(gh api graphql -f query='
    query($owner: String!, $repo: String!, $number: Int!) {
      repository(owner: $owner, name: $repo) {
        issue(number: $number) { id }
      }
    }' \
-   -F owner="$OWNER" -F repo="$REPO" -F number="$issue_number" \
-   | jq -r '.data.repository.issue.id'
+   -F owner="$OWNER" -F repo="$REPO" -F number="$issue_number")
+  echo "API response: $response"
+  echo "$response" | jq -r '.data.repository.issue.id'
 }
 
 # function: print_issue_status, param: issue_node_id
@@ -58,7 +60,7 @@ update_issue_status() {
   
   # Debug: Check token and environment
   echo "Verifying GitHub API access..."
-  echo "token_abc set: ${token_abc:+YES (${#token_abc} chars)}"
+  echo "GITHUB_TOKEN set: ${GITHUB_TOKEN:+YES (${#GITHUB_TOKEN} chars)}"
   echo "GH_TOKEN set: ${GH_TOKEN:+YES}"
   
   # Test API access
