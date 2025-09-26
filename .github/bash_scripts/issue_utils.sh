@@ -22,29 +22,33 @@ print_issue_status() {
   local issue_node_id="$1"
   echo "Received issue node ID in print_issue_status: $issue_node_id"
   gh api graphql -f query='
-    query($id: ID!) {
-      node(id: $id) {
-        ... on Issue {
-          projectItems(first: 20) {
-            nodes {
-              project { title }
-              fieldValues(first: 20) {
-                nodes {
-                  ... on ProjectV2ItemFieldSingleSelectValue {
-                    field { ... on ProjectV2FieldCommon { name } }
-                    name
-                  }
-                  ... on ProjectV2ItemFieldTextValue {
-                    field { ... on ProjectV2FieldCommon { name } }
-                    text
-                  }}}}}}}}
-  ' --field id="$issue_node_id" \
+   query($id: ID!) {
+     node(id: $id) {
+       ... on Issue {
+         projectItems(first: 100) {
+           nodes {
+             project { title }
+             fieldValues(first: 10) {
+               nodes {
+                 ... on ProjectV2ItemFieldSingleSelectValue {
+                   field { name }
+                   name
+                 }
+                 ... on ProjectV2ItemFieldTextValue {
+                   field { name }
+                   text
+                 }
+               }
+             }
+           }
+         }
+       }
+     }
+   }' -F id="$issue_node_id" \
   | jq -r '
-      .data.node.projectItems.nodes[] |
-      select(.project != null) |
-      {project: .project.title, status: (.fieldValues.nodes[]? | select(.field.name=="Status") | (.name // .text // "No Status"))} |
-      "  - \(.project): \(.status)"
-    '
+    .data.node.projectItems.nodes[]? |
+    {project: .project.title, status: (.fieldValues.nodes[]? | select(.field.name=="Status") | (.name // .text // "No Status"))} |
+    "  - \(.project): \(.status)"' || echo "No project items found"
   echo "Exiting print_issue_status for issue node ID: $issue_node_id"
 }
 
@@ -61,26 +65,42 @@ update_issue_status() {
   
   # Get project items for the issue 
   echo "Fetching project items for issue..."
-  local project_items
-    project_items=$(gh api graphql -f query='
-    query($id: ID!) {
-      node(id: $id) {
-        ... on Issue {
-          projectItems(first: 20) {
-            nodes { id project { id title } }
-            pageInfo { hasNextPage endCursor }
-          }
-        }
-      }
-    }' -F id="$issue_node_id")
-    echo "Raw GraphQL response: $project_items"
-    local item_count
-    item_count=$(echo "$project_items" | jq '.data.node.projectItems.nodes | length')
-    echo "Item count: $item_count"
-    if [ "$item_count" = "0" ]; then
-      echo "Warning: Issue #$issue_number is not linked to any GitHub Projects (or projects not accessible)"
-      return 0
-    fi
+ local project_items
+  project_items=$(gh api graphql -f query='
+   query($id: ID!) {
+     node(id: $id) {
+       ... on Issue {
+         projectItems(first: 100) {  # Increase limit to 100
+           nodes {
+             id
+             project {
+               id
+               title
+               public
+               closed
+             }
+             fieldValues(first: 10) {
+               nodes {
+                 ... on ProjectV2ItemFieldSingleSelectValue {
+                   field { name }
+                   name
+                 }
+               }
+             }
+           }
+           pageInfo { hasNextPage endCursor }
+         }
+       }
+     }
+   }' -F id="$issue_node_id")
+  echo "Raw GraphQL response: $project_items"
+  local item_count
+  item_count=$(echo "$project_items" | jq '.data.node.projectItems.nodes | length')
+  echo "Item count: $item_count"
+  if [ "$item_count" = "0" ]; then
+    echo "Warning: Issue #$issue_number is not linked to any GitHub Projects (or projects not accessible)"
+    return 0
+  fi
   
   local updated=0 failed=0
   
