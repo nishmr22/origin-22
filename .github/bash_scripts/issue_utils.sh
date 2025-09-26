@@ -31,11 +31,19 @@ print_issue_status() {
              fieldValues(first: 10) {
                nodes {
                  ... on ProjectV2ItemFieldSingleSelectValue {
-                   field { name }
+                   field {
+                     ... on ProjectV2SingleSelectField {
+                       name
+                     }
+                   }
                    name
                  }
                  ... on ProjectV2ItemFieldTextValue {
-                   field { name }
+                   field {
+                     ... on ProjectV2TextField {
+                       name
+                     }
+                   }
                    text
                  }
                }
@@ -47,7 +55,7 @@ print_issue_status() {
    }' -F id="$issue_node_id" \
   | jq -r '
     .data.node.projectItems.nodes[]? |
-    {project: .project.title, status: (.fieldValues.nodes[]? | select(.field.name=="Status") | (.name // .text // "No Status"))} |
+    {project: .project.title, status: (.fieldValues.nodes[]? | select(.field | .["... on ProjectV2SingleSelectField"].name=="Status") | (.name // .text // "No Status"))} |
     "  - \(.project): \(.status)"' || echo "No project items found"
   echo "Exiting print_issue_status for issue node ID: $issue_node_id"
 }
@@ -65,12 +73,12 @@ update_issue_status() {
   
   # Get project items for the issue 
   echo "Fetching project items for issue..."
- local project_items
+  local project_items
   project_items=$(gh api graphql -f query='
    query($id: ID!) {
      node(id: $id) {
        ... on Issue {
-         projectItems(first: 100) {  # Increase limit to 100
+         projectItems(first: 100) {
            nodes {
              id
              project {
@@ -82,7 +90,12 @@ update_issue_status() {
              fieldValues(first: 10) {
                nodes {
                  ... on ProjectV2ItemFieldSingleSelectValue {
-                   field { name }
+                   field {
+                     ... on ProjectV2SingleSelectField {
+                       id
+                       name
+                     }
+                   }
                    name
                  }
                }
@@ -101,9 +114,7 @@ update_issue_status() {
     echo "Warning: Issue #$issue_number is not linked to any GitHub Projects (or projects not accessible)"
     return 0
   fi
-  
   local updated=0 failed=0
-  
   while read -r item; do
     local project_item_id project_id project_title
     project_item_id=$(echo "$item" | jq -r '.id')
